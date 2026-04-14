@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Talks Event Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-container {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .search-container input[type="text"] {
+            width: 70%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .search-container input[type="text"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+        .talk-schedule {
+            display: grid;
+            gap: 20px;
+        }
+        .talk-card, .break-card {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .talk-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .talk-card.filtered {
+            display: none;
+        }
+        .talk-time {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .talk-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .talk-speakers {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .talk-category {
+            background-color: #e0f7fa;
+            color: #00796b;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+        .talk-description {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #555;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .break-card {
+            background-color: #ffe0b2;
+            color: #e65100;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            padding: 30px;
+            border-color: #ffb74d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Technical Talks Event Schedule</h1>
+
+        <div class="search-container">
+            <input type="text" id="categorySearch" placeholder="Search by category (e.g., AI, Web, Cloud)...">
+        </div>
+
+        <div id="schedule" class="talk-schedule">
+            <!-- Schedule will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const eventStartTime = new Date();
+        eventStartTime.setHours(10, 0, 0, 0); // Event starts at 10:00 AM
+
+        const talksData = [
+            {
+                id: 'talk1',
+                title: 'The Future of AI in Software Development',
+                speakers: ['Dr. Ava Sterling'],
+                category: ['AI', 'Software Engineering'],
+                duration: 60, // minutes
+                description: 'Explore how artificial intelligence is transforming the landscape of software development, from automated code generation to intelligent testing and deployment.'
+            },
+            {
+                id: 'talk2',
+                title: 'Demystifying Serverless Architectures',
+                speakers: ['Ben Carter', 'Sophia Chen'],
+                category: ['Cloud', 'Serverless'],
+                duration: 60,
+                description: 'A deep dive into serverless computing, understanding its benefits, drawbacks, and best practices for building scalable applications without managing servers.'
+            },
+            {
+                id: 'talk3',
+                title: 'Modern JavaScript: Beyond the Basics',
+                speakers: ['Carlos Rodriguez'],
+                category: ['Web Development', 'JavaScript'],
+                duration: 60,
+                description: 'Uncover advanced JavaScript concepts, new language features, and powerful patterns that will elevate your web development skills.'
+            },
+            {
+                id: 'talk4',
+                title: 'Containerization with Docker and Kubernetes',
+                speakers: ['Diana Lee'],
+                category: ['DevOps', 'Containers', 'Cloud'],
+                duration: 60,
+                description: 'Learn the essentials of containerization using Docker and orchestration with Kubernetes for efficient application deployment and management.'
+            },
+            {
+                id: 'talk5',
+                title: 'Understanding Blockchain Technology',
+                speakers: ['Ethan Harris', 'Fiona Green'],
+                category: ['Blockchain', 'FinTech'],
+                duration: 60,
+                description: 'An introductory session to the core principles of blockchain, its applications beyond cryptocurrency, and its potential impact on various industries.'
+            },
+            {
+                id: 'talk6',
+                title: 'Effective Data Visualization Techniques',
+                speakers: ['Grace Kim'],
+                category: ['Data Science', 'UI/UX'],
+                duration: 60,
+                description: 'Master the art of presenting complex data in a clear, compelling, and insightful manner using various visualization tools and techniques.'
+            }
+        ];
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function generateSchedule() {
+            const scheduleContainer = document.getElementById('schedule');
+            scheduleContainer.innerHTML = ''; // Clear existing schedule
+
+            let currentTime = new Date(eventStartTime);
+            let talkIndex = 0;
+
+            while (talkIndex < talksData.length) {
+                // Determine if the next item is a talk or a break
+                const isLunchBreak = talkIndex === Math.floor(talksData.length / 2); // Lunch after the 3rd talk
+
+                if (isLunchBreak) {
+                    const lunchStartTime = new Date(currentTime);
+                    currentTime.setMinutes(currentTime.getMinutes() + 60); // 1-hour lunch
+                    const lunchEndTime = new Date(currentTime);
+
+                    const breakCard = document.createElement('div');
+                    breakCard.classList.add('break-card');
+                    breakCard.innerHTML = `
+                        <span class="talk-time">${formatTime(lunchStartTime)} - ${formatTime(lunchEndTime)}</span>
+                        <div class="talk-title">Lunch Break</div>
+                    `;
+                    scheduleContainer.appendChild(breakCard);
+
+                    // Add transition time after lunch break
+                    currentTime.setMinutes(currentTime.getMinutes() + 10);
+                } else {
+                    const talk = talksData[talkIndex];
+                    const talkStartTime = new Date(currentTime);
+                    currentTime.setMinutes(currentTime.getMinutes() + talk.duration);
+                    const talkEndTime = new Date(currentTime);
+
+                    talk.start_time = talkStartTime;
+                    talk.end_time = talkEndTime;
+
+                    const talkCard = document.createElement('div');
+                    talkCard.classList.add('talk-card');
+                    talkCard.dataset.categories = talk.category.map(c => c.toLowerCase()).join(' ');
+
+                    talkCard.innerHTML = `
+                        <span class="talk-time">${formatTime(talk.start_time)} - ${formatTime(talk.end_time)}</span>
+                        <h2 class="talk-title">${talk.title}</h2>
+                        <p class="talk-speakers">Speaker(s): ${talk.speakers.join(', ')}</p>
+                        <div>
+                            ${talk.category.map(cat => `<span class="talk-category">${cat}</span>`).join('')}
+                        </div>
+                        <p class="talk-description">${talk.description}</p>
+                    `;
+                    scheduleContainer.appendChild(talkCard);
+
+                    // Add transition time after talk (unless it's the last one)
+                    if (talkIndex < talksData.length - 1) {
+                        currentTime.setMinutes(currentTime.getMinutes() + 10);
+                    }
+                    talkIndex++;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateSchedule();
+            document.getElementById('categorySearch').addEventListener('input', filterTalks);
+        });
+    </script>
+</body>
+</html>
